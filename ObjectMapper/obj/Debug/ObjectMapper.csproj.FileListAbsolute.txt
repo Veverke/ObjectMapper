@@ -1,0 +1,4 @@
+c:\users\avraham.kahana\documents\visual studio 2013\Projects\ObjectMapper\ObjectMapper\bin\Debug\ObjectMapper.dll
+c:\users\avraham.kahana\documents\visual studio 2013\Projects\ObjectMapper\ObjectMapper\bin\Debug\ObjectMapper.pdb
+c:\users\avraham.kahana\documents\visual studio 2013\Projects\ObjectMapper\ObjectMapper\obj\Debug\ObjectMapper.dll
+c:\users\avraham.kahana\documents\visual studio 2013\Projects\ObjectMapper\ObjectMapper\obj\Debug\ObjectMapper.pdb
