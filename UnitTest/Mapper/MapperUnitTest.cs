@@ -1,153 +1,139 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using UnitTest.Mapper.Data;
+using UnitTest.Data;
 using System.Collections.Generic;
-using ObjectMapper;
 using ObjectMapper.Types;
+using System.Diagnostics;
 
-namespace UnitTest.Mapper
+namespace UnitTest
 {
     [TestClass]
     public class MapperUnitTest
     {
         [TestMethod]
-        public void MapValueTypes()
+        /* ----------------------------------------
+         * Test Case 1
+         * Description: Map objects containing value and reference type properties plus a nested object
+         * ---------------------------------------*/
+        public void TC1()
         {
             #region Arrange
-            A a = new A { a = 10, b = 20, c = "ccc", x = 9 };
-            B b = new B { a = 1000, x = 12300, y = "yyyyy" };
+            A a = new A(1000, "hello world", new Obj(50, "github", new DateTime(1982, 11, 14)));
+            //B b = new B(-1, "b string", new Obj(999, "google", new DateTime(2015, 1, 1)));
 
-            ObjectMapper.Mapper mapper = new ObjectMapper.Mapper(); 
-            #endregion
-            
-            #region Act
-            B mappedObject = mapper.Map<A, B>(a); 
-            #endregion
-
-            #region Assert
-            Assert.IsTrue(a.a == mappedObject.a && a.x == mappedObject.x);
-            #endregion
-        }
-
-        [TestMethod]
-        public void MapReferenceTypes()
-        {
-            #region Arrange
-            A a = new A { a = 10, b = 20, c = "ccc", obj = new MyObj { s = "sssss" } };
-            B b = new B { a = 1000, obj = new MyObj { s = "ydsydgsauqwdwudhawud" }, x = 12300, y = "yyyyy" };
-
-            ObjectMapper.Mapper mapper = new ObjectMapper.Mapper();
-            #endregion
+            #endregion Arrange
 
             #region Act
+            Mapper mapper = new Mapper();
             B mappedObject = mapper.Map<A, B>(a);
-            #endregion
+            #endregion Act
 
             #region Assert
-            Assert.IsTrue(a.a == mappedObject.a && a.obj.s == mappedObject.obj.s);
-            #endregion
+
+            Assert.IsTrue(
+                    a.Int == mappedObject.Int
+                && a.String == mappedObject.String
+                && a.Obj.Int == mappedObject.Obj.Int
+                && a.Obj.String == mappedObject.Obj.String
+                && a.Obj.Date == mappedObject.Obj.Date);
+
+            #endregion Assert
         }
 
+        /* ----------------------------------------
+         * Test Case 2
+         * Description: Map objects containing value and reference type properties plus a nested object, with DIFFERENT NAMES (and thus custom mappings)
+         * ---------------------------------------*/
         [TestMethod]
-        public void MapExtraction()
+        public void TC2()
         {
             #region Arrange
-            A a = new A { a = 10, b = 20, c = "ccc", obj = new MyObj { s = "sssss" }, myB = new B { a = 1, x = 2, obj = new MyObj { s = "123513ijudadas" } } };
-            B b = new B { a = 1000, obj = new MyObj { s = "ydsydgsa" }, x = 12300, y = "yyyyy" };
+            A a = new A(1000, "hello world", new Obj(50, "github", new DateTime(1982, 11, 14)));
 
-            ObjectMapper.Mapper mapper = new ObjectMapper.Mapper();
-            #endregion
+            #endregion Arrange
 
             #region Act
-            MappedObject<B> mappedObject = mapper.Map<A, B>(a, new Dictionary<string, List<string>> { { "myB", new List<string> { "x" } } });
-            #endregion
+            Mapper mapper = new Mapper();
+            Dictionary<string, List<string>> customMappings = new Dictionary<string, List<string>>
+            {
+                {"int", new List<string> {"inttc2"}}, 
+                { "string", new List<string> {"stringTC2"} }
+            };
+            B_TC2 mappedObject = mapper.Map<A, B_TC2>(a, customMappings: customMappings);
+            #endregion Act
 
             #region Assert
-            Assert.IsTrue(a.a == mappedObject.RegularMapping.a && a.obj.s == mappedObject.RegularMapping.obj.s && a.myB.x == mappedObject.Extras.x);
-            #endregion
+
+            Assert.IsTrue(
+                    a.Int == mappedObject.IntTC2
+                && a.String == mappedObject.StringTC2/*
+                && a.Obj.Int == mappedObject.ObjTC2.Int
+                && a.Obj.String == mappedObject.ObjTC2.String
+                && a.Obj.Date == mappedObject.ObjTC2.Date*/);
+
+            #endregion Assert
         }
 
+        /* ----------------------------------------
+        * Test Case 3
+        * Description: Map objects containing value and reference type properties plus a nested object, with DIFFERENT NAMES (and thus custom mappings - using "contains")
+        * If more than one property contains the string, the 1st is used as the map destination.
+        * ---------------------------------------*/
         [TestMethod]
-        public void MapWithIgnoreList()
+        public void TC3()
         {
             #region Arrange
-            A a = new A { a = 10, b = 20, c = "ccc", obj = new MyObj { s = "sssss" }, x = 1000 };
-            B b = new B { a = 1000, obj = new MyObj { s = "ydsydgsa" }, x = 12300, y = "yyyyy" };
-            B untouchedB = new B { a = 1000, obj = new MyObj { s = "ydsydgsa" }, x = 12300, y = "yyyyy" };
+            A a = new A(1000, "hello world", new Obj(50, "github", new DateTime(1982, 11, 14)));
 
-            ObjectMapper.Mapper mapper = new ObjectMapper.Mapper();
-            #endregion
+            #endregion Arrange
 
             #region Act
-            B mappedObject = mapper.Map<A, B>(a, overrideWithDefaultValues: false, fieldsToIgnore: new List<string> { "obj", "x" });
-            #endregion
+            Mapper mapper = new Mapper();
+            Dictionary<string, List<string>> customMappings = new Dictionary<string, List<string>>
+            {
+                {"int", new List<string> { "inttc2" }}, 
+                { "contains", new List<string> { "bj"} }
+            };
+            B_TC2 mappedObject = mapper.Map<A, B_TC2>(a, customMappings: customMappings);
+            #endregion Act
 
             #region Assert
-            Assert.IsTrue(a.a == mappedObject.a && mappedObject.obj == null && mappedObject.x == default(Int32));
-            #endregion
+
+            Assert.IsTrue(
+                    a.Int == mappedObject.IntTC2
+                //&& a.String == mappedObject.StringTC2
+                && a.Obj.Int == mappedObject.ObjTC2.Int
+                && a.Obj.String == mappedObject.ObjTC2.String
+                && a.Obj.Date == mappedObject.ObjTC2.Date);
+
+            #endregion Assert
         }
-
-        /* ----------------------------------------------------------------------------------------------------------------------------------
-         * Not applicable: a new instance of the destination object is created at each mapping, it will thus always start with default values. 
-         * If we choose to skip some properties, the destination counterparts will be left with their initial values.
-         * ----------------------------------------------------------------------------------------------------------------------------------
-         */
-
-        //[TestMethod]
-        //public void MapWithoutOverridingDefaults()
-        //{
-        //    #region Arrange
-        //    A a = new A { a = 0, b = 20, c = "ccc", x = 1000 };
-        //    B b = new B { a = 1000, obj = new MyObj { s = "ydsydgsa" }, x = 12300, y = "yyyyy" };
-
-        //    ObjectMapper.Mapper.Mapper mapper = new ObjectMapper.Mapper.Mapper();
-        //    #endregion
-
-        //    #region Act
-        //    B mappedObject = mapper.Map<A, B>(a, overrideWithDefaultValues: false, fieldsToIgnore: new List<string> { "obj", "x" });
-        //    #endregion
-
-        //    #region Assert
-        //    Assert.IsTrue(mappedObject.a == b.a && mappedObject.obj.s == b.obj.s);
-        //    #endregion
-        //}
-
+        /* ----------------------------------------
+        * Test Case 4
+        * Description: Map objects marked with the "Mapping" attribute, to the specified map. If more than one match is specified and more than one match is found in the destination type, the property will be mapped to the first match.
+        * ---------------------------------------*/
         [TestMethod]
-        public void MapWithDefaultsOverriding()
+        public void TC4()
         {
             #region Arrange
-            A a = new A { a = 0, b = 20, c = "ccc", x = 1000 };
-            B b = new B { a = 1000, obj = new MyObj { s = "ydsydgsa" }, x = 12300, y = "yyyyy" };
+            A a = new A(1000, "hello world", new Obj(50, "github", new DateTime(1982, 11, 14)));
 
-            ObjectMapper.Mapper mapper = new ObjectMapper.Mapper();
-            #endregion
+            #endregion Arrange
 
             #region Act
-            B mappedObject = mapper.Map<A, B>(a, overrideWithDefaultValues: false, fieldsToIgnore: new List<string> { "obj", "x" });
-            #endregion
+            Mapper mapper = new Mapper();
+            C mappedObject = mapper.Map<A, C>(a);
+            #endregion Act
 
             #region Assert
-            Assert.IsTrue(a.a == mappedObject.a && mappedObject.obj == null);
-            #endregion
-        }
 
-        [TestMethod]
-        public void MapWithCustomMapping()
-        {
-            #region Arrange
-            A a = new A { a = 0, b = 20, c = "ccc", x = 1000 };
-            B b = new B { a = 1000, obj = new MyObj { s = "ydsydgsa" }, x = 12300, y = "yyyyy" };
+            Assert.IsTrue(
+                    a.Int == mappedObject.Int
+                //&& a.String == mappedObject.StringTC2
+                && a.String == mappedObject.String
+                && a.String == mappedObject.String2);
 
-            ObjectMapper.Mapper mapper = new ObjectMapper.Mapper();
-            #endregion
-
-            #region Act
-            B mappedObject = mapper.Map<A, B>(a, overrideWithDefaultValues: false, fieldsToIgnore: new List<string> { "obj" }, customMapping: new Dictionary<string, string> { { "x", "y" } });
-            #endregion
-
-            #region Assert
-            Assert.IsTrue(a.a == mappedObject.a && mappedObject.obj == null && mappedObject.y == a.x.ToString());
-            #endregion
+            #endregion Assert
         }
     }
 }

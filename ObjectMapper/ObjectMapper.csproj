@@ -39,8 +39,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Mapper\Mapper.cs" />
-    <Compile Include="Mapper\Types\MappedObject.cs" />
+    <Compile Include="Infra\Constants.cs" />
+    <Compile Include="Types\Mapper.cs" />
+    <Compile Include="Types\MappedObject.cs" />
+    <Compile Include="Types\MappingAttribute.cs" />
+    <Compile Include="Types\MatchingPropertyName.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
